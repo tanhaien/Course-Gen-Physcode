@@ -63,25 +63,25 @@ st.title("Physcode-GPT Assistant for Education")
 
 task = st.selectbox("Select content type", ["Generate Text", "Generate Image", "Generate Course Content"])
 
-prompt = st.text_area("Enter your prompt here")
+prompt = st.text_area("Enter your topic here")
 
 if st.button("Generate"):
-    if task == "Generate Text":
-        result = generate_response(prompt)
-        st.text_area("Result:", value=result, height=300)
-    elif task == "Generate Image":
-        image_url = generate_image(prompt)
-        if image_url:
-            # Download image from URL
-            response = requests.get(image_url)
-            image = Image.open(BytesIO(response.content))
-            # Display image
-            st.image(image, caption="Generated Image", use_column_width=True)
-        else:
-            st.error("Unable to generate image. Please try again.")
-    elif task == "Generate Course Content":
-        result = generate_course_content(prompt)
-        st.text_area("Result:", value=result, height=300)
+    with st.spinner("Processing... Please wait."):
+        if task == "Generate Text":
+            result = generate_response(prompt)
+            st.text_area("Result:", value=result, height=300)
+        elif task == "Generate Image":
+            image_url = generate_image(prompt)
+            if image_url:
+                # Download image from URL
+                response = requests.get(image_url)
+                image = Image.open(BytesIO(response.content))
+                # Display image
+                st.image(image, caption="Generated Image", use_column_width=True)
+            else:
+                st.error("Unable to generate image. Please try again.")
+        elif task == "Generate Course Content":
+            result = generate_course_content(prompt)
+            st.text_area("Result:", value=result, height=300)
 
-if __name__ == '__main__':
-    st.run()
+    st.success("Generation completed!")
