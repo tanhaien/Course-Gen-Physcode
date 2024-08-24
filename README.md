@@ -44,14 +44,6 @@
 
 3. Chọn loại nội dung bạn muốn tạo (văn bản, hình ảnh hoặc khóa học), nhập prompt và nhấn "Tạo"
 
-## Cấu trúc dự án
-ai-writing-server/
-│
-├── server.py
-├── templates/
-│ └── index.html
-└── README.md
-
 
 ## Đóng góp
 
