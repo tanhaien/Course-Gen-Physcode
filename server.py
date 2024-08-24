@@ -1,16 +1,19 @@
 import os
 from openai import OpenAI
-from flask import Flask, render_template, request
 from PIL import Image
 import io
 import base64
+from dotenv import load_dotenv
+import requests
+from io import BytesIO
+
+# Load biến môi trường từ file .env
+load_dotenv()
 
 # Khởi tạo client
 client = OpenAI(
-    api_key=os.environ.get("OPENAI_API_KEY"),
+    api_key=os.getenv("OPENAI_API_KEY"),
 )
-
-app = Flask(__name__)
 
 # Gọi API để tạo chat completion
 def generate_response(prompt):
@@ -29,13 +32,13 @@ def generate_response(prompt):
         print(f"An error occurred: {e}")
         return None
 
-# Hàm sinh hình ảnh
+# Sửa đổi hàm generate_image
 def generate_image(prompt):
     try:
         response = client.images.generate(
             model="dall-e-3",
             prompt=prompt,
-            size="512x512",
+            size="1024x1024",
             quality="standard",
             n=1,
         )
@@ -54,23 +57,29 @@ def generate_course_content(topic):
     """
     return generate_response(prompt)
 
-@app.route('/', methods=['GET', 'POST'])
-def index():
-    if request.method == 'POST':
-        prompt = request.form['prompt']
-        task = request.form['task']
-        
-        if task == 'text':
-            result = generate_response(prompt)
-        elif task == 'image':
-            image_url = generate_image(prompt)
-            result = f'<img src="{image_url}" alt="Generated Image">'
-        elif task == 'course':
-            result = generate_course_content(prompt)
-        
-        return render_template('index.html', result=result, show_result=True)
-    
-    return render_template('index.html', show_result=False)
+import streamlit as st
 
-if __name__ == '__main__':
-    app.run(debug=True, port=5001)
+# Giao diện Streamlit
+st.title("Physcode-ChatGPT Assistant for Education")
+
+task = st.selectbox("Chọn loại nội dung", ["Sinh văn bản", "Sinh hình ảnh", "Sinh nội dung khóa học"])
+
+prompt = st.text_area("Nhập prompt của bạn ở đây")
+
+if st.button("Tạo"):
+    if task == "Sinh văn bản":
+        result = generate_response(prompt)
+        st.text_area("Kết quả:", value=result, height=300)
+    elif task == "Sinh hình ảnh":
+        image_url = generate_image(prompt)
+        if image_url:
+            # Tải hình ảnh từ URL
+            response = requests.get(image_url)
+            image = Image.open(BytesIO(response.content))
+            # Hiển thị hình ảnh
+            st.image(image, caption="Hình ảnh được tạo", use_column_width=True)
+        else:
+            st.error("Không thể tạo hình ảnh. Vui lòng thử lại.")
+    elif task == "Sinh nội dung khóa học":
+        result = generate_course_content(prompt)
+        st.text_area("Kết quả:", value=result, height=300)
