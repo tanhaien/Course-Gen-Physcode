@@ -7,13 +7,13 @@ import base64
 from dotenv import load_dotenv
 import requests
 from io import BytesIO
-
-# Load environment variables from .env file
-load_dotenv()
+import streamlit as st
+     
+api_key = st.secrets["OPENAI_API_KEY"]
 
 # Initialize client
 client = OpenAI(
-    api_key=os.getenv("OPENAI_API_KEY"),
+    api_key=api_key
 )
 
 # Call API to create chat completion
