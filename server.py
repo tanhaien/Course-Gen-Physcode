@@ -1,4 +1,5 @@
 import os
+import streamlit as st
 from openai import OpenAI
 from PIL import Image
 import io
@@ -7,15 +8,15 @@ from dotenv import load_dotenv
 import requests
 from io import BytesIO
 
-# Load biến môi trường từ file .env
+# Load environment variables from .env file
 load_dotenv()
 
-# Khởi tạo client
+# Initialize client
 client = OpenAI(
     api_key=os.getenv("OPENAI_API_KEY"),
 )
 
-# Gọi API để tạo chat completion
+# Call API to create chat completion
 def generate_response(prompt):
     try:
         chat_completion = client.chat.completions.create(
@@ -25,14 +26,14 @@ def generate_response(prompt):
                     "content": prompt,
                 }
             ],
-            model="gpt-3.5-turbo",  # Hoặc model khác tùy theo nhu cầu của bạn
+            model="gpt-3.5-turbo",  # Or another model based on your needs
         )
         return chat_completion.choices[0].message.content
     except Exception as e:
         print(f"An error occurred: {e}")
         return None
 
-# Sửa đổi hàm generate_image
+# Function to generate image
 def generate_image(prompt):
     try:
         response = client.images.generate(
@@ -45,41 +46,42 @@ def generate_image(prompt):
         image_url = response.data[0].url
         return image_url
     except Exception as e:
-        print(f"Đã xảy ra lỗi khi tạo hình ảnh: {e}")
+        print(f"An error occurred while generating the image: {e}")
         return None
 
-# Hàm sinh nội dung khóa học
+# Function to generate course content
 def generate_course_content(topic):
-    prompt = f"""Bạn là chuyên gia tạo khóa học. Nhiệm vụ của bạn là tạo nội dung khóa học cụ thể và chuyên sâu về chủ đề '{topic}' bao gồm:
-    1. Tiêu đề
-    2. Mô tả
-    3. Khung chương trình đầy đủ, chi tiết chuyên sâu về chủ đề '{topic}' (outline) với các section và lesson của nó
+    prompt = f"""You are a course creation expert. Your task is to create specific and in-depth course content on the topic '{topic}' including:
+    1. Title
+    2. Description
+    3. Detailed, in-depth course outline on the topic '{topic}' with its sections and lessons
     """
     return generate_response(prompt)
 
-import streamlit as st
+# Streamlit interface
+st.title("Physcode-GPT Assistant for Education")
 
-# Giao diện Streamlit
-st.title("Physcode-ChatGPT Assistant for Education")
+task = st.selectbox("Select content type", ["Generate Text", "Generate Image", "Generate Course Content"])
 
-task = st.selectbox("Chọn loại nội dung", ["Sinh văn bản", "Sinh hình ảnh", "Sinh nội dung khóa học"])
+prompt = st.text_area("Enter your prompt here")
 
-prompt = st.text_area("Nhập prompt của bạn ở đây")
-
-if st.button("Tạo"):
-    if task == "Sinh văn bản":
+if st.button("Generate"):
+    if task == "Generate Text":
         result = generate_response(prompt)
-        st.text_area("Kết quả:", value=result, height=300)
-    elif task == "Sinh hình ảnh":
+        st.text_area("Result:", value=result, height=300)
+    elif task == "Generate Image":
         image_url = generate_image(prompt)
         if image_url:
-            # Tải hình ảnh từ URL
+            # Download image from URL
             response = requests.get(image_url)
             image = Image.open(BytesIO(response.content))
-            # Hiển thị hình ảnh
-            st.image(image, caption="Hình ảnh được tạo", use_column_width=True)
+            # Display image
+            st.image(image, caption="Generated Image", use_column_width=True)
         else:
-            st.error("Không thể tạo hình ảnh. Vui lòng thử lại.")
-    elif task == "Sinh nội dung khóa học":
+            st.error("Unable to generate image. Please try again.")
+    elif task == "Generate Course Content":
         result = generate_course_content(prompt)
-        st.text_area("Kết quả:", value=result, height=300)
+        st.text_area("Result:", value=result, height=300)
+
+if __name__ == '__main__':
+    st.run()
