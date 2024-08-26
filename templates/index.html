@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="vi">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Writing Server cho Giáo dục</title>
+    <title>AI Writing Server for Education</title>
     <style>
         :root {
             --primary-color: #4a90e2;
@@ -103,19 +103,27 @@
 </head>
 <body>
     <div class="container">
-        <h1>AI Writing Server cho Giáo dục</h1>
+        <h1>AI Writing Server for Education</h1>
         <form method="POST">
-            <textarea name="prompt" placeholder="Nhập prompt của bạn ở đây"></textarea>
+            <textarea name="prompt" placeholder="Enter your prompt here"></textarea>
             <select name="task">
-                <option value="text">Sinh văn bản</option>
-                <option value="image">Sinh hình ảnh</option>
-                <option value="course">Sinh nội dung khóa học</option>
+                <option value="text">Generate Text</option>
+                <option value="image">Generate Image</option>
+                <option value="course">Generate Course Content</option>
             </select>
-            <input type="submit" value="Tạo">
+            <select name="output_language">
+                <option value="Vietnamese">Vietnamese</option>
+                <option value="English">English</option>
+                <option value="French">French</option>
+                <option value="German">German</option>
+                <option value="Spanish">Spanish</option>
+            </select>
+            <input type="number" name="num_variants" min="1" max="5" value="1" placeholder="Number of variants">
+            <input type="submit" value="Generate">
         </form>
         {% if show_result %}
             <div class="result">
-                <h2>Kết quả:</h2>
+                <h2>Result:</h2>
                 {% if result %}
                     {% if '<img' in result %}
                         {{ result|safe }}
@@ -123,7 +131,7 @@
                         <pre>{{ result }}</pre>
                     {% endif %}
                 {% else %}
-                    <p>Không có kết quả.</p>
+                    <p>No result.</p>
                 {% endif %}
             </div>
         {% endif %}
