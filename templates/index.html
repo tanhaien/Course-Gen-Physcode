@@ -111,6 +111,14 @@
                 <option value="image">Sinh hình ảnh</option>
                 <option value="course">Sinh nội dung khóa học</option>
             </select>
+            <select name="output_language">
+                <option value="Tiếng Việt">Tiếng Việt</option>
+                <option value="English">English</option>
+                <option value="Français">Français</option>
+                <option value="Deutsch">Deutsch</option>
+                <option value="Español">Español</option>
+            </select>
+            <input type="number" name="num_variants" min="1" max="5" value="1" placeholder="Số lượng biến thể">
             <input type="submit" value="Tạo">
         </form>
         {% if show_result %}

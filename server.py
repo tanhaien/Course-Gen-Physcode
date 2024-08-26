@@ -16,11 +16,18 @@ client = OpenAI(
     api_key=api_key
 )
 
+# Thêm danh sách ngôn ngữ đầu ra
+output_languages = ["Tiếng Việt", "English", "Français", "Deutsch", "Español"]
+
 # Call API to create chat completion
-def generate_response(prompt):
+def generate_response(prompt, output_language):
     try:
         chat_completion = client.chat.completions.create(
             messages=[
+                {
+                    "role": "system",
+                    "content": f"Respond in {output_language}.",
+                },
                 {
                     "role": "user",
                     "content": prompt,
@@ -36,9 +43,10 @@ def generate_response(prompt):
 # Function to generate image
 def generate_image(prompt):
     try:
+        enhanced_prompt = f"{prompt}. Do not include any text or words in the image."
         response = client.images.generate(
             model="dall-e-3",
-            prompt=prompt,
+            prompt=enhanced_prompt,
             size="1024x1024",
             quality="standard",
             n=1,
@@ -50,13 +58,13 @@ def generate_image(prompt):
         return None
 
 # Function to generate course content
-def generate_course_content(topic):
+def generate_course_content(topic, output_language):
     prompt = f"""You are a course creation expert. Your task is to create specific and in-depth course content on the topic '{topic}' including:
     1. Title
     2. Description
     3. Detailed, in-depth course outline on the topic '{topic}' with its sections and lessons
     """
-    return generate_response(prompt)
+    return generate_response(prompt, output_language)
 
 # Streamlit interface
 st.title("Physcode-GPT Assistant for Education")
@@ -65,23 +73,28 @@ task = st.selectbox("Select content type", ["Generate Text", "Generate Image", "
 
 prompt = st.text_area("Enter your topic here")
 
+output_language = st.selectbox("Chọn ngôn ngữ đầu ra", output_languages)
+
+num_variants = st.slider("Số lượng biến thể", min_value=1, max_value=5, value=1)
+
 if st.button("Generate"):
     with st.spinner("Processing... Please wait."):
         if task == "Generate Text":
-            result = generate_response(prompt)
-            st.text_area("Result:", value=result, height=300)
+            for i in range(num_variants):
+                result = generate_response(prompt, output_language)
+                st.text_area(f"Kết quả {i+1}:", value=result, height=300)
         elif task == "Generate Image":
-            image_url = generate_image(prompt)
-            if image_url:
-                # Download image from URL
-                response = requests.get(image_url)
-                image = Image.open(BytesIO(response.content))
-                # Display image
-                st.image(image, caption="Generated Image", use_column_width=True)
-            else:
-                st.error("Unable to generate image. Please try again.")
+            for i in range(num_variants):
+                image_url = generate_image(prompt)
+                if image_url:
+                    response = requests.get(image_url)
+                    image = Image.open(BytesIO(response.content))
+                    st.image(image, caption=f"Hình ảnh được tạo {i+1}", use_column_width=True)
+                else:
+                    st.error("Không thể tạo hình ảnh. Vui lòng thử lại.")
         elif task == "Generate Course Content":
-            result = generate_course_content(prompt)
-            st.text_area("Result:", value=result, height=300)
+            for i in range(num_variants):
+                result = generate_course_content(prompt, output_language)
+                st.text_area(f"Kết quả {i+1}:", value=result, height=300)
 
     st.success("Generation completed!")
