@@ -8,9 +8,9 @@ API server sử dụng FastAPI và OpenAI để tạo nội dung văn bản, hì
 2. Thiết lập rate limiting để bảo vệ API
 3. Định nghĩa các model dữ liệu cho các request
 4. Cung cấp các endpoint để:
-   a) Lấy và chỉnh sửa prompt cho text, image, và course
-   b) Tạo text, image, và course content dựa trên prompt
-   c) Tạo nội dung tùy chỉnh cho text, image, và course
+   - Lấy và chỉnh sửa prompt cho text, image, và course
+   - Tạo text, image, và course content dựa trên prompt
+   - Tạo nội dung tùy chỉnh cho text, image, và course
 5. Xử lý các request, gọi API OpenAI, và trả về kết quả
 6. Xử lý lỗi và giới hạn tốc độ request
 
