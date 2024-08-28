@@ -1,54 +1,63 @@
-# AI Writing Server cho Giáo dục
+# PhysCode GPT API Server
 
-Đây là một ứng dụng web Flask đơn giản cho phép người dùng tạo nội dung văn bản, hình ảnh và khóa học sử dụng API của OpenAI.
+API server sử dụng FastAPI và OpenAI để tạo nội dung văn bản, hình ảnh và khóa học.
 
-## Tính năng
+## Quy trình của api_server.py
 
-- Sinh văn bản sử dụng GPT-3.5-turbo
-- Tạo hình ảnh sử dụng DALL-E 3
-- Sinh nội dung khóa học với tiêu đề, mô tả và khung chương trình
+1. Khởi tạo ứng dụng FastAPI và cấu hình logging
+2. Thiết lập rate limiting để bảo vệ API
+3. Định nghĩa các model dữ liệu cho các request
+4. Cung cấp các endpoint để:
+   a) Lấy và chỉnh sửa prompt cho text, image, và course
+   b) Tạo text, image, và course content dựa trên prompt
+   c) Tạo nội dung tùy chỉnh cho text, image, và course
+5. Xử lý các request, gọi API OpenAI, và trả về kết quả
+6. Xử lý lỗi và giới hạn tốc độ request
+
+## Hướng dẫn sử dụng Docker image
+
+Để chạy server sử dụng Docker, thực hiện lệnh sau:
+
+
+docker run -p 8000:8000 -e OPENAI_API_KEY=your_api_key physcode-gpt
+
+
+Thay thế `your_api_key` bằng API key OpenAI của bạn.
+
+## Sử dụng API
+
+1. Truy cập API documentation: 
+   ```
+   http://localhost:8000/docs
+   ```
+
+2. Các endpoint có sẵn:
+   - Lấy prompt:
+     - `/get_text_prompt`
+     - `/get_image_prompt`
+     - `/get_course_prompt`
+   - Tạo nội dung:
+     - `/generate_text`
+     - `/generate_image`
+     - `/generate_course`
+   - Tạo nội dung tùy chỉnh:
+     - `/generate_custom_text`
+     - `/generate_custom_image`
+     - `/generate_custom_course`
 
 ## Yêu cầu
 
-- Python 3.7+
-- Flask
-- OpenAI Python Library
-- Pillow (PIL)
+- Docker
+- OpenAI API key
 
-## Cài đặt
+## Lưu ý bảo mật
 
-1. Clone repository này:
-   ```
-   git clone https://github.com/your-username/ai-writing-server.git
-   cd ai-writing-server
-   ```
+Đảm bảo bảo vệ API key của bạn và không chia sẻ nó công khai.
 
-2. Cài đặt các thư viện cần thiết:
-   ```
-   pip install flask openai pillow
-   ```
+## Hỗ trợ
 
-3. Thiết lập biến môi trường cho API key của OpenAI:
-   ```
-   export OPENAI_API_KEY='your-api-key-here'
-   ```
-
-## Sử dụng
-
-1. Chạy server:
-   ```
-   python server.py
-   ```
-
-2. Mở trình duyệt web và truy cập `http://localhost:5001`
-
-3. Chọn loại nội dung bạn muốn tạo (văn bản, hình ảnh hoặc khóa học), nhập prompt và nhấn "Tạo"
-
-
-## Đóng góp
-
-Nếu bạn muốn đóng góp cho dự án, vui lòng tạo một pull request hoặc mở một issue để thảo luận về những thay đổi bạn muốn thực hiện.
+Nếu bạn gặp vấn đề hoặc có câu hỏi, vui lòng tạo issue trong repository này.
 
 ## Giấy phép
 
-[MIT](https://choosealicense.com/licenses/mit/)
+[MIT License](LICENSE)
