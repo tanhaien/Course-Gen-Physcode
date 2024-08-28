@@ -58,7 +58,6 @@ def generate_image(prompt):
         print(f"An error occurred while generating the image: {e}")
         return None
 
-# Cập nhật hàm generate_course_content
 def generate_course_content(topic, output_language):
     prompt = f"""You are a course creation expert. Your task is to create specific and in-depth course content on the topic '{topic}' including:
     1. Title
