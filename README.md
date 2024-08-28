@@ -19,7 +19,7 @@ API server sử dụng FastAPI và OpenAI để tạo nội dung văn bản, hì
 Để chạy server sử dụng Docker, thực hiện lệnh sau:
 
 
-docker run -p 8000:8000 -e OPENAI_API_KEY=your_api_key physcode-gpt
+```docker run -p 8000:8000 -e OPENAI_API_KEY=your_api_key physcode-gpt```
 
 
 Thay thế `your_api_key` bằng API key OpenAI của bạn.
