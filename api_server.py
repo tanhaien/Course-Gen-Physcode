@@ -1,17 +1,30 @@
-from fastapi import FastAPI, HTTPException
-from pydantic import BaseModel
+from fastapi import FastAPI, HTTPException, Request
+from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi.util import get_remote_address
+from slowapi.errors import RateLimitExceeded
+from pydantic import BaseModel, Field
 from openai import OpenAI
 import requests
 from io import BytesIO
 import base64
 from dotenv import load_dotenv
 import os
+import logging
 
 # Tải biến môi trường
 load_dotenv()
 
+# Thiết lập logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
 # Khởi tạo FastAPI app
 app = FastAPI()
+
+# Khởi tạo Limiter
+limiter = Limiter(key_func=get_remote_address)
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 # Khởi tạo OpenAI client
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
@@ -25,11 +38,11 @@ class ImageRequest(BaseModel):
     prompt: str
 
 class CourseRequest(BaseModel):
-    topic: str
-    output_language: str
-    audience: str
-    tone: str
-    style: str
+    topic: str = Field(..., min_length=3, max_length=100)
+    output_language: str = Field(..., min_length=2, max_length=50)
+    audience: str = Field(..., min_length=3, max_length=100)
+    tone: str = Field(..., min_length=3, max_length=50)
+    style: str = Field(..., min_length=3, max_length=50)
 
 # Định nghĩa thêm các model dữ liệu mới
 class PromptRequest(BaseModel):
@@ -72,10 +85,11 @@ def generate_response(prompt, output_language):
             model="gpt-3.5-turbo",
         )
         response = chat_completion.choices[0].message.content
+        logging.info(f"Generating response for prompt: {prompt}")
         return {"prompt": prompt, "response": response}
     except Exception as e:
-        print(f"An error occurred: {e}")
-        return None
+        logging.error(f"Error in generate_response: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
 
 # Function to generate image
 def generate_image(prompt):
@@ -91,7 +105,7 @@ def generate_image(prompt):
         image_url = response.data[0].url
         return {"prompt": prompt, "image_url": image_url}
     except Exception as e:
-        print(f"An error occurred while generating the image: {e}")
+        logging.error(f"An error occurred while generating the image: {e}")
         return None
 
 def generate_course_content(topic, output_language, audience, tone, style):
@@ -135,15 +149,17 @@ async def get_course_prompt(request: CourseRequest):
 
 # Cập nhật API endpoints để nhận prompt đã chỉnh sửa
 @app.post("/generate_text")
-async def api_generate_text(request: PromptRequest):
-    result = generate_response(request.prompt, request.output_language)
+@limiter.limit("10/minute")
+async def api_generate_text(request: Request, text_request: TextRequest):
+    result = generate_response(text_request.prompt, text_request.output_language)
     if result:
         return result
     raise HTTPException(status_code=500, detail="Không thể tạo văn bản")
 
 @app.post("/generate_image")
-async def api_generate_image(request: ImagePromptRequest):
-    result = generate_image(request.prompt)
+@limiter.limit("5/minute")
+async def api_generate_image(request: Request, image_request: ImageRequest):
+    result = generate_image(image_request.prompt)
     if result:
         response = requests.get(result["image_url"])
         image = BytesIO(response.content)
@@ -154,13 +170,14 @@ async def api_generate_image(request: ImagePromptRequest):
     raise HTTPException(status_code=500, detail="Không thể tạo hình ảnh")
 
 @app.post("/generate_course")
-async def api_generate_course(request: CourseRequest):
+@limiter.limit("2/minute")
+async def api_generate_course(request: Request, course_request: CourseRequest):
     result = generate_course_content(
-        request.topic,
-        request.output_language,
-        request.audience,
-        request.tone,
-        request.style
+        course_request.topic,
+        course_request.output_language,
+        course_request.audience,
+        course_request.tone,
+        course_request.style
     )
     if result:
         return result
